@@ -431,10 +431,17 @@
   // для теста) — используем временный тестовый ID, чтобы можно было проверить сохранение.
   const telegramId = tg?.initDataUnsafe?.user?.id || 999999999;
 
-  // --- Подключение к Supabase ---
+  // --- Подключение к Supabase (безопасно, не ломает страницу при сбое загрузки) ---
   const SUPABASE_URL = 'https://nhzdxaupkktmiinulrxd.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_oAbm0O4XbMqVdxQEjycP_A_VJlk6HN8';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let supabase = null;
+  try {
+    if (window.supabase) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  } catch (e) {
+    console.error('Supabase init failed:', e);
+  }
 
   const TOTAL_BUDGET = 150000;
   let items = { laptop: false, phone: false };
@@ -520,6 +527,11 @@
   });
 
   ctaBtn.addEventListener('click', async () => {
+    if (!supabase) {
+      alert('Не удалось подключиться к базе данных (проблема с сетью). Попробуй ещё раз через пару секунд.');
+      return;
+    }
+
     ctaBtn.disabled = true;
     ctaBtn.textContent = 'Сохраняем...';
 
