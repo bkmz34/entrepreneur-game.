@@ -6,6 +6,8 @@
 <title>Путь предпринимателя — создание персонажа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #14201A;
@@ -421,6 +423,19 @@
 </div>
 
 <script>
+  // --- Подключение к Telegram ---
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  // ID игрока из Telegram. Если открыто не в Telegram (например, в обычном браузере
+  // для теста) — используем временный тестовый ID, чтобы можно было проверить сохранение.
+  const telegramId = tg?.initDataUnsafe?.user?.id || 999999999;
+
+  // --- Подключение к Supabase ---
+  const SUPABASE_URL = 'https://nhzdxaupkktmiinulrxd.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_oAbm0O4XbMqVdxQEjycP_A_VJlk6HN8';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
   const TOTAL_BUDGET = 150000;
   let items = { laptop: false, phone: false };
   let housingRent = 15000;
@@ -504,8 +519,48 @@
     });
   });
 
-  ctaBtn.addEventListener('click', () => {
-    alert('Дальше здесь будет переход в первый игровой день.\n\nЭто пока прототип экрана — логика перехода добавится, когда подключим сервер.');
+  ctaBtn.addEventListener('click', async () => {
+    ctaBtn.disabled = true;
+    ctaBtn.textContent = 'Сохраняем...';
+
+    const mind = parseInt(document.getElementById('statMind').textContent);
+    const charisma = parseInt(document.getElementById('statCharisma').textContent);
+    const mood = parseInt(document.getElementById('statMood').textContent);
+    const weight = parseInt(document.getElementById('statWeight').textContent);
+
+    let spent = 0;
+    if (items.laptop) spent += 40000;
+    if (items.phone) spent += 20000;
+    spent += educationPrice;
+    const balance = TOTAL_BUDGET - spent;
+
+    const nextRentDate = new Date();
+    nextRentDate.setMonth(nextRentDate.getMonth() + 1);
+    nextRentDate.setDate(1);
+
+    const { error } = await supabase.from('players').upsert({
+      telegram_id: telegramId,
+      balance: balance,
+      mind: mind,
+      charisma: charisma,
+      mood: mood,
+      weight: weight,
+      has_laptop: items.laptop,
+      has_phone: items.phone,
+      monthly_rent: housingRent,
+      education: educationDebt ? 'university_debt' : (educationPrice > 0 ? 'courses' : 'none'),
+      next_rent_date: nextRentDate.toISOString().split('T')[0]
+    }, { onConflict: 'telegram_id' });
+
+    if (error) {
+      alert('Не получилось сохранить: ' + error.message);
+      ctaBtn.disabled = false;
+      ctaBtn.textContent = 'Начать путь';
+      return;
+    }
+
+    ctaBtn.textContent = 'Сохранено ✓';
+    alert('Персонаж сохранён! Дальше здесь будет переход в первый игровой день.');
   });
 
   recalc();
