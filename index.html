@@ -424,12 +424,15 @@
 
 <script>
   // --- Подключение к Telegram ---
-  const tg = window.Telegram?.WebApp;
+  var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
   if (tg) { tg.ready(); tg.expand(); }
 
   // ID игрока из Telegram. Если открыто не в Telegram (например, в обычном браузере
   // для теста) — используем временный тестовый ID, чтобы можно было проверить сохранение.
-  const telegramId = tg?.initDataUnsafe?.user?.id || 999999999;
+  var telegramId = 999999999;
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+    telegramId = tg.initDataUnsafe.user.id;
+  }
 
   // --- Подключение к Supabase (безопасно, не ломает страницу при сбое загрузки) ---
   const SUPABASE_URL = 'https://nhzdxaupkktmiinulrxd.supabase.co';
