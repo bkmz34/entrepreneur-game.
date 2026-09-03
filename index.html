@@ -6,6 +6,16 @@
 <title>Путь предпринимателя — создание персонажа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Диагностика: если где-то в коде ниже будет ошибка — покажем её прямо на экране,
+  // чтобы не гадать вслепую, а сразу видеть причину.
+  window.onerror = function(msg, url, line, col, error) {
+    var banner = document.createElement('div');
+    banner.style.cssText = 'background:#c0392b;color:#fff;padding:10px 14px;font-family:monospace;font-size:12px;position:fixed;top:0;left:0;right:0;z-index:99999;white-space:pre-wrap;';
+    banner.textContent = 'JS ошибка: ' + msg + ' (строка ' + line + ')';
+    document.body.insertBefore(banner, document.body.firstChild);
+  };
+</script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -579,6 +589,12 @@
   });
 
   recalc();
+
+  // Диагностика: подтверждение, что скрипт отработал до конца без ошибок
+  var okBanner = document.createElement('div');
+  okBanner.style.cssText = 'background:#2d6a4f;color:#fff;padding:6px 14px;font-family:monospace;font-size:11px;position:fixed;bottom:0;left:0;right:0;z-index:99999;text-align:center;';
+  okBanner.textContent = 'JS загружен успешно ✓';
+  document.body.appendChild(okBanner);
 </script>
 
 </body>
